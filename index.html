@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多浏览器批量网址打开工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- 配置Tailwind自定义颜色和字体 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .transition-custom {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .bg-gradient {
+                background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans text-gray-800">
+    <!-- 页面容器 -->
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- 标题区域 -->
+        <header class="text-center mb-12 mt-6">
+            <div class="inline-block p-3 rounded-full bg-gradient text-white mb-4 shadow-lg transform hover:scale-105 transition-custom">
+                <i class="fa fa-link text-3xl"></i>
+            </div>
+            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-dark mb-4 text-shadow">批量网址打开工具</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto text-lg">上传包含网址的TXT文件，选择浏览器隐私模式，一键批量打开多个网址</p>
+        </header>
+        
+        <!-- 主内容区域 -->
+        <main class="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-10 transform hover:shadow-2xl transition-custom">
+            <!-- 浏览器选择区域 -->
+            <section class="mb-10">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <i class="fa fa-browser text-primary mr-3"></i>选择浏览器
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="browser-selection">
+                    <!-- Chrome -->
+                    <div class="browser-option border-2 border-gray-200 rounded-xl p-5 cursor-pointer hover:border-primary hover:bg-blue-50 transition-custom flex flex-col items-center">
+                        <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mb-3">
+                            <i class="fa fa-chrome text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-lg">Google Chrome</h3>
+                        <p class="text-sm text-gray-500">无痕模式</p>
+                        <input type="radio" name="browser" value="chrome" class="mt-3" checked>
+                    </div>
+                    
+                    <!-- Edge -->
+                    <div class="browser-option border-2 border-gray-200 rounded-xl p-5 cursor-pointer hover:border-primary hover:bg-blue-50 transition-custom flex flex-col items-center">
+                        <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-3">
+                            <i class="fa fa-edge text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-lg">Microsoft Edge</h3>
+                        <p class="text-sm text-gray-500">InPrivate模式</p>
+                        <input type="radio" name="browser" value="edge" class="mt-3">
+                    </div>
+                    
+                    <!-- Firefox -->
+                    <div class="browser-option border-2 border-gray-200 rounded-xl p-5 cursor-pointer hover:border-primary hover:bg-blue-50 transition-custom flex flex-col items-center">
+                        <div class="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mb-3">
+                            <i class="fa fa-firefox text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-lg">Mozilla Firefox</h3>
+                        <p class="text-sm text-gray-500">隐私窗口</p>
+                        <input type="radio" name="browser" value="firefox" class="mt-3">
+                    </div>
+                    
+                    <!-- Safari -->
+                    <div class="browser-option border-2 border-gray-200 rounded-xl p-5 cursor-pointer hover:border-primary hover:bg-blue-50 transition-custom flex flex-col items-center">
+                        <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-3">
+                            <i class="fa fa-safari text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-lg">Safari</h3>
+                        <p class="text-sm text-gray-500">私人浏览</p>
+                        <input type="radio" name="browser" value="safari" class="mt-3">
+                    </div>
+                    
+                    <!-- Opera -->
+                    <div class="browser-option border-2 border-gray-200 rounded-xl p-5 cursor-pointer hover:border-primary hover:bg-blue-50 transition-custom flex flex-col items-center">
+                        <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mb-3">
+                            <i class="fa fa-opera text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-lg">Opera</h3>
+                        <p class="text-sm text-gray-500">隐私窗口</p>
+                        <input type="radio" name="browser" value="opera" class="mt-3">
+                    </div>
+                    
+                    <!-- 当前浏览器 -->
+                    <div class="browser-option border-2 border-gray-200 rounded-xl p-5 cursor-pointer hover:border-primary hover:bg-blue-50 transition-custom flex flex-col items-center">
+                        <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-3">
+                            <i class="fa fa-globe text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-lg">当前浏览器</h3>
+                        <p class="text-sm text-gray-500">隐私模式</p>
+                        <input type="radio" name="browser" value="current" class="mt-3">
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 文件上传区域 -->
+            <section class="mb-10">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <i class="fa fa-upload text-primary mr-3"></i>上传网址文件
+                </h2>
+                <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-primary transition-custom" id="file-drop-area">
+                    <i class="fa fa-file-text-o text-5xl text-gray-400 mb-4"></i>
+                    <p class="mb-4">拖放TXT文件到此处，或<span class="text-primary font-medium">点击选择文件</span></p>
+                    <p class="text-sm text-gray-500 mb-6">文件应包含每行一个网址，支持带或不带http://和https://格式（系统会自动补全）</p>
+                    <input type="file" id="file-input" accept=".txt" class="hidden">
+                    <button id="browse-btn" class="bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-custom flex items-center mx-auto">
+                        <i class="fa fa-folder-open mr-2"></i>浏览文件
+                    </button>
+                </div>
+                
+                <!-- 文件内容预览 -->
+                <div id="file-preview" class="mt-6 hidden">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-semibold text-lg" id="file-name">文件名</h3>
+                        <span class="text-sm text-gray-500" id="url-count">0个网址</span>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 max-h-40 overflow-y-auto bg-gray-50 text-sm" id="urls-preview">
+                        <!-- 网址预览将在这里显示 -->
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 选项设置 -->
+            <section class="mb-10 bg-gray-50 rounded-xl p-6">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <i class="fa fa-cog text-primary mr-3"></i>打开选项
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="delay" class="block text-gray-700 font-medium mb-2">网址打开间隔 (秒)</label>
+                        <div class="flex items-center">
+                            <input type="range" id="delay" min="1" max="10" value="3" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary">
+                            <span id="delay-value" class="ml-4 min-w-[30px] text-center font-medium">3</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">每个网址之间的等待时间</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">打开设置</label>
+                        <div class="flex items-center space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" id="shuffle" class="form-checkbox h-5 w-5 text-primary rounded">
+                                <span class="ml-2">随机顺序打开</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" id="limit" class="form-checkbox h-5 w-5 text-primary rounded">
+                                <span class="ml-2">限制数量</span>
+                            </label>
+                        </div>
+                        <div id="limit-container" class="mt-3 hidden">
+                            <input type="number" id="limit-count" min="1" max="100" value="10" class="w-24 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50">
+                            <span class="ml-2 text-gray-600">最多打开的网址数量</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 操作按钮 -->
+            <section class="text-center">
+                <button id="start-btn" class="bg-gradient text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-custom text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0" disabled>
+                    <i class="fa fa-play mr-2"></i>开始打开网址
+                </button>
+                
+                <button id="cancel-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-4 px-10 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-custom text-lg ml-4 hidden">
+                    <i class="fa fa-stop mr-2"></i>取消
+                </button>
+            </section>
+        </main>
+        
+        <!-- 进度显示区域 -->
+        <div id="progress-container" class="bg-white rounded-2xl shadow-xl p-6 mb-10 hidden">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fa fa-spinner fa-spin text-primary mr-3"></i>打开进度
+            </h2>
+            
+            <div class="mb-4">
+                <div class="flex justify-between text-sm mb-1">
+                    <span id="progress-text">准备中...</span>
+                    <span id="progress-percentage">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3">
+                    <div id="progress-bar" class="bg-primary h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <h3 class="font-semibold mb-2">最近打开的网址</h3>
+                <div id="recent-urls" class="space-y-2 max-h-40 overflow-y-auto">
+                    <!-- 最近打开的网址将在这里显示 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 提示和说明 -->
+        <div class="bg-blue-50 border-l-4 border-primary p-5 rounded-r-lg mb-10">
+            <h3 class="font-bold text-primary flex items-center">
+                <i class="fa fa-info-circle mr-2"></i>使用说明
+            </h3>
+            <ul class="list-disc list-inside mt-2 text-gray-700 space-y-1 text-sm">
+                <li>由于浏览器安全限制，无法直接启动系统中的其他浏览器，将使用当前浏览器的隐私模式打开链接</li>
+                <li>请确保您的浏览器允许弹出窗口，否则网址可能无法正常打开</li>
+                <li>TXT文件应包含每行一个网址，支持带或不带http://和https://格式（系统会自动补全为https://）</li>
+                <li>打开多个网址可能会影响浏览器性能，请根据需要调整数量</li>
+            </ul>
+        </div>
+        
+        <!-- 页脚 -->
+        <footer class="text-center text-gray-500 text-sm py-6">
+            <p>批量网址打开工具 &copy; 2023</p>
+        </footer>
+    </div>
+    
+    <!-- 通知组件 -->
+    <div id="notification" class="fixed bottom-6 right-6 p-4 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 max-w-sm hidden">
+        <div class="flex items-start">
+            <div id="notification-icon" class="mr-3 text-xl"></div>
+            <div>
+                <h4 id="notification-title" class="font-semibold"></h4>
+                <p id="notification-message" class="text-sm mt-1"></p>
+            </div>
+            <button id="close-notification" class="ml-auto text-gray-400 hover:text-gray-600">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let urls = [];
+        let isProcessing = false;
+        let processInterval;
+        
+        // 工具函数：补全URL协议
+        function completeUrlProtocol(url) {
+            if (!url) return '';
+            // 检查是否已经包含http://或https://
+            if (!/^https?:\/\//i.test(url)) {
+                // 自动添加https://协议
+                return 'https://' + url;
+            }
+            return url;
+        }
+        
+        // DOM元素
+        const fileInput = document.getElementById('file-input');
+        const browseBtn = document.getElementById('browse-btn');
+        const fileDropArea = document.getElementById('file-drop-area');
+        const filePreview = document.getElementById('file-preview');
+        const fileName = document.getElementById('file-name');
+        const urlCount = document.getElementById('url-count');
+        const urlsPreview = document.getElementById('urls-preview');
+        const startBtn = document.getElementById('start-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const delayInput = document.getElementById('delay');
+        const delayValue = document.getElementById('delay-value');
+        const shuffleCheckbox = document.getElementById('shuffle');
+        const limitCheckbox = document.getElementById('limit');
+        const limitContainer = document.getElementById('limit-container');
+        const limitCount = document.getElementById('limit-count');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const progressPercentage = document.getElementById('progress-percentage');
+        const recentUrls = document.getElementById('recent-urls');
+        const browserOptions = document.querySelectorAll('.browser-option');
+        
+        // 通知元素
+        const notification = document.getElementById('notification');
+        const notificationIcon = document.getElementById('notification-icon');
+        const notificationTitle = document.getElementById('notification-title');
+        const notificationMessage = document.getElementById('notification-message');
+        const closeNotification = document.getElementById('close-notification');
+        
+        // 事件监听 - 文件上传
+        browseBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                processFile(e.target.files[0]);
+            }
+        });
+        
+        // 拖放功能
+        fileDropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileDropArea.classList.add('border-primary', 'bg-blue-50');
+        });
+        
+        fileDropArea.addEventListener('dragleave', () => {
+            fileDropArea.classList.remove('border-primary', 'bg-blue-50');
+        });
+        
+        fileDropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileDropArea.classList.remove('border-primary', 'bg-blue-50');
+            
+            if (e.dataTransfer.files.length > 0) {
+                processFile(e.dataTransfer.files[0]);
+            }
+        });
+        
+        // 浏览器选择
+        browserOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const radio = option.querySelector('input[type="radio"]');
+                radio.checked = true;
+            });
+        });
+        
+        // 延迟设置
+        delayInput.addEventListener('input', () => {
+            delayValue.textContent = delayInput.value;
+        });
+        
+        // 限制数量设置
+        limitCheckbox.addEventListener('change', () => {
+            if (limitCheckbox.checked) {
+                limitContainer.classList.remove('hidden');
+            } else {
+                limitContainer.classList.add('hidden');
+            }
+        });
+        
+        // 开始按钮
+        startBtn.addEventListener('click', startProcessing);
+        
+        // 取消按钮
+        cancelBtn.addEventListener('click', cancelProcessing);
+        
+        // 关闭通知
+        closeNotification.addEventListener('click', hideNotification);
+        
+        // 处理文件 - 增加自动补全协议功能
+        function processFile(file) {
+            if (file.type !== 'text/plain' && !file.name.endsWith('.txt')) {
+                showNotification('错误', '请上传TXT格式的文件', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                const content = e.target.result;
+                // 解析每行的网址，并自动补全协议
+                urls = content.split('\n')
+                    .map(url => url.trim())
+                    .filter(url => url.length > 0)
+                    .map(url => completeUrlProtocol(url)); // 关键修改：补全URL协议
+                
+                // 显示预览（显示补全后的网址）
+                fileName.textContent = file.name;
+                urlCount.textContent = `${urls.length}个网址`;
+                
+                urlsPreview.innerHTML = '';
+                // 只显示前5个网址作为预览
+                const previewUrls = urls.slice(0, 5);
+                previewUrls.forEach(url => {
+                    const urlElement = document.createElement('div');
+                    urlElement.className = 'p-2 bg-white rounded border border-gray-100 truncate hover:bg-blue-50 transition-custom';
+                    urlElement.textContent = url;
+                    urlsPreview.appendChild(urlElement);
+                });
+                
+                if (urls.length > 5) {
+                    const moreElement = document.createElement('div');
+                    moreElement.className = 'text-center text-gray-500 mt-2';
+                    moreElement.textContent = `... 还有 ${urls.length - 5} 个网址`;
+                    urlsPreview.appendChild(moreElement);
+                }
+                
+                filePreview.classList.remove('hidden');
+                startBtn.disabled = false;
+                
+                showNotification('成功', `已加载 ${urls.length} 个有效网址（自动补全了缺失的协议）`, 'success');
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // 开始处理网址
+        function startProcessing() {
+            if (urls.length === 0) {
+                showNotification('错误', '请先上传包含网址的文件', 'error');
+                return;
+            }
+            
+            // 检查浏览器是否允许弹出窗口
+            const testWindow = window.open('about:blank');
+            if (!testWindow) {
+                showNotification('警告', '请允许弹出窗口以继续操作', 'warning');
+                return;
+            }
+            testWindow.close();
+            
+            // 准备网址列表
+            let processUrls = [...urls];
+            
+            // 随机排序
+            if (shuffleCheckbox.checked) {
+                processUrls = shuffleArray(processUrls);
+            }
+            
+            // 限制数量
+            if (limitCheckbox.checked && limitCount.value > 0) {
+                const limit = Math.min(limitCount.value, processUrls.length);
+                processUrls = processUrls.slice(0, limit);
+            }
+            
+            // 更新UI状态
+            isProcessing = true;
+            startBtn.disabled = true;
+            cancelBtn.classList.remove('hidden');
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            progressPercentage.textContent = '0%';
+            progressText.textContent = `准备打开 ${processUrls.length} 个网址`;
+            recentUrls.innerHTML = '';
+            
+            // 获取选中的浏览器
+            const selectedBrowser = document.querySelector('input[name="browser"]:checked').value;
+            
+            // 逐个打开网址
+            let currentIndex = 0;
+            const delay = parseInt(delayInput.value) * 1000; // 转换为毫秒
+            
+            openNextUrl();
+            
+            function openNextUrl() {
+                if (currentIndex >= processUrls.length || !isProcessing) {
+                    // 完成处理
+                    if (isProcessing) {
+                        progressBar.style.width = '100%';
+                        progressPercentage.textContent = '100%';
+                        progressText.textContent = '所有网址已打开完毕';
+                        showNotification('完成', `已成功打开 ${processUrls.length} 个网址`, 'success');
+                    } else {
+                        progressText.textContent = '操作已取消';
+                        showNotification('已取消', '网址打开操作已取消', 'info');
+                    }
+                    
+                    // 重置状态
+                    setTimeout(() => {
+                        cancelProcessing();
+                    }, 2000);
+                    
+                    return;
+                }
+                
+                // 打开当前网址（已补全协议）
+                const url = processUrls[currentIndex];
+                openUrlInBrowser(url, selectedBrowser);
+                
+                // 更新进度
+                currentIndex++;
+                const progress = Math.round((currentIndex / processUrls.length) * 100);
+                progressBar.style.width = `${progress}%`;
+                progressPercentage.textContent = `${progress}%`;
+                progressText.textContent = `正在打开第 ${currentIndex} 个，共 ${processUrls.length} 个`;
+                
+                // 显示最近打开的网址
+                addRecentUrl(url);
+                
+                // 定时打开下一个
+                processInterval = setTimeout(openNextUrl, delay);
+            }
+        }
+        
+        // 取消处理
+        function cancelProcessing() {
+            isProcessing = false;
+            clearTimeout(processInterval);
+            startBtn.disabled = false;
+            cancelBtn.classList.add('hidden');
+        }
+        
+        // 在浏览器中打开网址
+        function openUrlInBrowser(url, browser) {
+            // 由于浏览器安全限制，只能使用当前浏览器的隐私模式
+            const win = window.open(url, '_blank');
+            
+            if (win) {
+                // 窗口成功打开
+                return true;
+            } else {
+                // 弹出窗口被阻止
+                showNotification('警告', '弹出窗口被阻止，请允许弹出窗口', 'warning');
+                return false;
+            }
+        }
+        
+        // 添加最近打开的网址
+        function addRecentUrl(url) {
+            const urlElement = document.createElement('div');
+            urlElement.className = 'p-2 bg-gray-50 rounded border border-gray-100 text-sm flex items-center';
+            
+            const iconElement = document.createElement('i');
+            iconElement.className = 'fa fa-external-link text-primary mr-2';
+            
+            const textElement = document.createElement('span');
+            textElement.className = 'truncate flex-1';
+            textElement.textContent = url;
+            
+            urlElement.appendChild(iconElement);
+            urlElement.appendChild(textElement);
+            
+            // 添加到顶部
+            if (recentUrls.firstChild) {
+                recentUrls.insertBefore(urlElement, recentUrls.firstChild);
+            } else {
+                recentUrls.appendChild(urlElement);
+            }
+            
+            // 限制显示数量
+            if (recentUrls.children.length > 5) {
+                recentUrls.removeChild(recentUrls.lastChild);
+            }
+        }
+        
+        // 数组随机排序
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+        
+        // 显示通知
+        function showNotification(title, message, type = 'info') {
+            notificationTitle.textContent = title;
+            notificationMessage.textContent = message;
+            
+            // 设置图标和样式
+            notificationIcon.className = '';
+            notification.className = 'fixed bottom-6 right-6 p-4 rounded-lg shadow-lg transform translate-y-0 opacity-100 transition-all duration-300 max-w-sm';
+            
+            switch (type) {
+                case 'success':
+                    notificationIcon.className = 'fa fa-check-circle text-green-500 mr-3 text-xl';
+                    notification.classList.add('bg-green-50', 'border-l-4', 'border-green-500');
+                    break;
+                case 'error':
+                    notificationIcon.className = 'fa fa-exclamation-circle text-red-500 mr-3 text-xl';
+                    notification.classList.add('bg-red-50', 'border-l-4', 'border-red-500');
+                    break;
+                case 'warning':
+                    notificationIcon.className = 'fa fa-exclamation-triangle text-yellow-500 mr-3 text-xl';
+                    notification.classList.add('bg-yellow-50', 'border-l-4', 'border-yellow-500');
+                    break;
+                default:
+                    notificationIcon.className = 'fa fa-info-circle text-blue-500 mr-3 text-xl';
+                    notification.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500');
+            }
+            
+            // 自动隐藏
+            clearTimeout(window.notificationTimeout);
+            window.notificationTimeout = setTimeout(hideNotification, 5000);
+        }
+        
+        // 隐藏通知
+        function hideNotification() {
+            notification.classList.remove('translate-y-0', 'opacity-100');
+            notification.classList.add('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 300);
+        }
+    </script>
+</body>
+</html>
