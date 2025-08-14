@@ -53,7 +53,7 @@
                 <i class="fa fa-link text-3xl"></i>
             </div>
             <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-dark mb-4 text-shadow">批量网址打开工具</h1>
-            <p class="text-gray-600 max-w-2xl mx-auto text-lg">上传包含网址的TXT文件，选择浏览器隐私模式，一键批量打开多个网址</p>
+            <p class="text-gray-600 max-w-2xl mx-auto text-lg">上传TXT文件或直接输入网址，一键批量打开多个链接</p>
         </header>
         
         <!-- 主内容区域 -->
@@ -126,25 +126,54 @@
                 </div>
             </section>
             
-            <!-- 文件上传区域 -->
+            <!-- 网址输入区域（新增文本输入功能） -->
             <section class="mb-10">
                 <h2 class="text-2xl font-bold mb-6 flex items-center">
-                    <i class="fa fa-upload text-primary mr-3"></i>上传网址文件
+                    <i class="fa fa-link text-primary mr-3"></i>网址输入
                 </h2>
-                <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-primary transition-custom" id="file-drop-area">
-                    <i class="fa fa-file-text-o text-5xl text-gray-400 mb-4"></i>
-                    <p class="mb-4">拖放TXT文件到此处，或<span class="text-primary font-medium">点击选择文件</span></p>
-                    <p class="text-sm text-gray-500 mb-6">文件应包含每行一个网址，支持带或不带http://和https://格式（系统会自动补全）</p>
-                    <input type="file" id="file-input" accept=".txt" class="hidden">
-                    <button id="browse-btn" class="bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-custom flex items-center mx-auto">
-                        <i class="fa fa-folder-open mr-2"></i>浏览文件
-                    </button>
+                
+                <!-- 选项卡：文件上传/直接输入 -->
+                <div class="border-b border-gray-200 mb-6">
+                    <button id="file-tab" class="py-2 px-4 border-b-2 border-primary text-primary font-medium">文件上传</button>
+                    <button id="text-tab" class="py-2 px-4 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">直接输入</button>
                 </div>
                 
-                <!-- 文件内容预览 -->
-                <div id="file-preview" class="mt-6 hidden">
+                <!-- 文件上传区域 -->
+                <div id="file-input-area" class="mb-6">
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-primary transition-custom" id="file-drop-area">
+                        <i class="fa fa-file-text-o text-5xl text-gray-400 mb-4"></i>
+                        <p class="mb-4">拖放TXT文件到此处，或<span class="text-primary font-medium">点击选择文件</span></p>
+                        <p class="text-sm text-gray-500 mb-6">文件应包含每行一个网址，支持带或不带http://和https://格式（系统会自动补全）</p>
+                        <input type="file" id="file-input" accept=".txt" class="hidden">
+                        <button id="browse-btn" class="bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-custom flex items-center mx-auto">
+                            <i class="fa fa-folder-open mr-2"></i>浏览文件
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 直接输入区域（新增） -->
+                <div id="text-input-area" class="mb-6 hidden">
+                    <div class="border-2 border-gray-300 rounded-xl p-4 hover:border-primary transition-custom">
+                        <label class="block text-gray-700 font-medium mb-2">请输入网址（每行一个）</label>
+                        <textarea 
+                            id="urls-textarea" 
+                            rows="6" 
+                            class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                            placeholder="示例：
+baidu.com
+https://google.com
+github.com"></textarea>
+                        <p class="text-sm text-gray-500 mt-2">支持带或不带http://和https://格式，系统会自动补全协议</p>
+                        <button id="parse-text-btn" class="mt-4 bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-custom">
+                            <i class="fa fa-check mr-1"></i>解析输入
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 文件/文本内容预览（共用） -->
+                <div id="content-preview" class="mt-6 hidden">
                     <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-semibold text-lg" id="file-name">文件名</h3>
+                        <h3 class="font-semibold text-lg" id="preview-title">网址列表</h3>
                         <span class="text-sm text-gray-500" id="url-count">0个网址</span>
                     </div>
                     <div class="border border-gray-200 rounded-lg p-4 max-h-40 overflow-y-auto bg-gray-50 text-sm" id="urls-preview">
@@ -225,15 +254,23 @@
             </div>
         </div>
         
-        <!-- 提示和说明 -->
+        <!-- 提示和说明（新增允许重定向设置） -->
         <div class="bg-blue-50 border-l-4 border-primary p-5 rounded-r-lg mb-10">
             <h3 class="font-bold text-primary flex items-center">
                 <i class="fa fa-info-circle mr-2"></i>使用说明
             </h3>
-            <ul class="list-disc list-inside mt-2 text-gray-700 space-y-1 text-sm">
+            <ul class="list-disc list-inside mt-2 text-gray-700 space-y-2 text-sm">
                 <li>由于浏览器安全限制，无法直接启动系统中的其他浏览器，将使用当前浏览器的隐私模式打开链接</li>
-                <li>请确保您的浏览器允许弹出窗口，否则网址可能无法正常打开</li>
-                <li>TXT文件应包含每行一个网址，支持带或不带http://和https://格式（系统会自动补全为https://）</li>
+                <li>请确保您的浏览器允许弹出窗口和重定向，否则网址可能无法正常打开。设置方法：
+                    <ul class="list-disc list-inside mt-1 ml-4 text-gray-700 space-y-1">
+                        <li><strong>Chrome/Edge</strong>：设置 → 隐私和安全 → 网站设置 → 弹出式窗口和重定向 → 点击"允许" → 添加"raiden-wang.github.io"到允许列表</li>
+                        <li><strong>Firefox</strong>：选项 → 隐私与安全 → 权限 → 弹出窗口 → 例外 → 输入"raiden-wang.github.io" → 允许</li>
+                        <li><strong>Safari</strong>：偏好设置 → 网站 → 弹出窗口与重定向 → 选择"允许" → 添加"raiden-wang.github.io"</li>
+                        <li><strong>Opera</strong>：设置 → 网站 → 弹出窗口 → 允许 → 添加"raiden-wang.github.io"</li>
+                    </ul>
+                </li>
+                <li>支持两种输入方式：① 上传TXT文件（每行一个网址）；② 直接在文本框输入（每行一个网址）</li>
+                <li>系统会自动为缺少http:///https://的网址补全为https://协议</li>
                 <li>打开多个网址可能会影响浏览器性能，请根据需要调整数量</li>
             </ul>
         </div>
@@ -263,6 +300,7 @@
         let urls = [];
         let isProcessing = false;
         let processInterval;
+        let inputMode = 'file'; // 默认输入模式：file/text
         
         // 工具函数：补全URL协议
         function completeUrlProtocol(url) {
@@ -275,12 +313,54 @@
             return url;
         }
         
+        // 工具函数：处理并显示网址列表（共用逻辑）
+        function processUrlsList(rawUrls) {
+            // 解析、过滤并补全协议
+            urls = rawUrls
+                .map(url => url.trim())
+                .filter(url => url.length > 0)
+                .map(url => completeUrlProtocol(url));
+            
+            // 显示预览
+            document.getElementById('url-count').textContent = `${urls.length}个网址`;
+            const urlsPreview = document.getElementById('urls-preview');
+            urlsPreview.innerHTML = '';
+            
+            // 只显示前5个网址作为预览
+            const previewUrls = urls.slice(0, 5);
+            previewUrls.forEach(url => {
+                const urlElement = document.createElement('div');
+                urlElement.className = 'p-2 bg-white rounded border border-gray-100 truncate hover:bg-blue-50 transition-custom';
+                urlElement.textContent = url;
+                urlsPreview.appendChild(urlElement);
+            });
+            
+            if (urls.length > 5) {
+                const moreElement = document.createElement('div');
+                moreElement.className = 'text-center text-gray-500 mt-2';
+                moreElement.textContent = `... 还有 ${urls.length - 5} 个网址`;
+                urlsPreview.appendChild(moreElement);
+            }
+            
+            // 显示预览区域并启用开始按钮
+            document.getElementById('content-preview').classList.remove('hidden');
+            document.getElementById('start-btn').disabled = false;
+            
+            showNotification('成功', `已加载 ${urls.length} 个有效网址（自动补全了缺失的协议）`, 'success');
+        }
+        
         // DOM元素
         const fileInput = document.getElementById('file-input');
         const browseBtn = document.getElementById('browse-btn');
         const fileDropArea = document.getElementById('file-drop-area');
-        const filePreview = document.getElementById('file-preview');
-        const fileName = document.getElementById('file-name');
+        const fileTab = document.getElementById('file-tab');
+        const textTab = document.getElementById('text-tab');
+        const fileInputArea = document.getElementById('file-input-area');
+        const textInputArea = document.getElementById('text-input-area');
+        const urlsTextarea = document.getElementById('urls-textarea');
+        const parseTextBtn = document.getElementById('parse-text-btn');
+        const contentPreview = document.getElementById('content-preview');
+        const previewTitle = document.getElementById('preview-title');
         const urlCount = document.getElementById('url-count');
         const urlsPreview = document.getElementById('urls-preview');
         const startBtn = document.getElementById('start-btn');
@@ -305,6 +385,27 @@
         const notificationMessage = document.getElementById('notification-message');
         const closeNotification = document.getElementById('close-notification');
         
+        // 事件监听 - 输入模式切换（文件/文本）
+        fileTab.addEventListener('click', () => {
+            inputMode = 'file';
+            fileTab.classList.add('border-primary', 'text-primary');
+            fileTab.classList.remove('border-transparent', 'text-gray-500');
+            textTab.classList.add('border-transparent', 'text-gray-500');
+            textTab.classList.remove('border-primary', 'text-primary');
+            fileInputArea.classList.remove('hidden');
+            textInputArea.classList.add('hidden');
+        });
+        
+        textTab.addEventListener('click', () => {
+            inputMode = 'text';
+            textTab.classList.add('border-primary', 'text-primary');
+            textTab.classList.remove('border-transparent', 'text-gray-500');
+            fileTab.classList.add('border-transparent', 'text-gray-500');
+            fileTab.classList.remove('border-primary', 'text-primary');
+            textInputArea.classList.remove('hidden');
+            fileInputArea.classList.add('hidden');
+        });
+        
         // 事件监听 - 文件上传
         browseBtn.addEventListener('click', () => {
             fileInput.click();
@@ -312,7 +413,15 @@
         
         fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
-                processFile(e.target.files[0]);
+                const file = e.target.files[0];
+                previewTitle.textContent = file.name; // 显示文件名
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    const rawUrls = content.split('\n');
+                    processUrlsList(rawUrls);
+                };
+                reader.readAsText(file);
             }
         });
         
@@ -331,8 +440,28 @@
             fileDropArea.classList.remove('border-primary', 'bg-blue-50');
             
             if (e.dataTransfer.files.length > 0) {
-                processFile(e.dataTransfer.files[0]);
+                const file = e.dataTransfer.files[0];
+                previewTitle.textContent = file.name; // 显示文件名
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    const rawUrls = content.split('\n');
+                    processUrlsList(rawUrls);
+                };
+                reader.readAsText(file);
             }
+        });
+        
+        // 事件监听 - 文本输入解析（新增）
+        parseTextBtn.addEventListener('click', () => {
+            const text = urlsTextarea.value;
+            if (!text.trim()) {
+                showNotification('提示', '请输入至少一个网址', 'info');
+                return;
+            }
+            previewTitle.textContent = '手动输入的网址'; // 显示输入类型
+            const rawUrls = text.split('\n');
+            processUrlsList(rawUrls);
         });
         
         // 浏览器选择
@@ -366,64 +495,17 @@
         // 关闭通知
         closeNotification.addEventListener('click', hideNotification);
         
-        // 处理文件 - 增加自动补全协议功能
-        function processFile(file) {
-            if (file.type !== 'text/plain' && !file.name.endsWith('.txt')) {
-                showNotification('错误', '请上传TXT格式的文件', 'error');
-                return;
-            }
-            
-            const reader = new FileReader();
-            
-            reader.onload = (e) => {
-                const content = e.target.result;
-                // 解析每行的网址，并自动补全协议
-                urls = content.split('\n')
-                    .map(url => url.trim())
-                    .filter(url => url.length > 0)
-                    .map(url => completeUrlProtocol(url)); // 关键修改：补全URL协议
-                
-                // 显示预览（显示补全后的网址）
-                fileName.textContent = file.name;
-                urlCount.textContent = `${urls.length}个网址`;
-                
-                urlsPreview.innerHTML = '';
-                // 只显示前5个网址作为预览
-                const previewUrls = urls.slice(0, 5);
-                previewUrls.forEach(url => {
-                    const urlElement = document.createElement('div');
-                    urlElement.className = 'p-2 bg-white rounded border border-gray-100 truncate hover:bg-blue-50 transition-custom';
-                    urlElement.textContent = url;
-                    urlsPreview.appendChild(urlElement);
-                });
-                
-                if (urls.length > 5) {
-                    const moreElement = document.createElement('div');
-                    moreElement.className = 'text-center text-gray-500 mt-2';
-                    moreElement.textContent = `... 还有 ${urls.length - 5} 个网址`;
-                    urlsPreview.appendChild(moreElement);
-                }
-                
-                filePreview.classList.remove('hidden');
-                startBtn.disabled = false;
-                
-                showNotification('成功', `已加载 ${urls.length} 个有效网址（自动补全了缺失的协议）`, 'success');
-            };
-            
-            reader.readAsText(file);
-        }
-        
         // 开始处理网址
         function startProcessing() {
             if (urls.length === 0) {
-                showNotification('错误', '请先上传包含网址的文件', 'error');
+                showNotification('错误', '请先上传或输入网址', 'error');
                 return;
             }
             
             // 检查浏览器是否允许弹出窗口
             const testWindow = window.open('about:blank');
             if (!testWindow) {
-                showNotification('警告', '请允许弹出窗口以继续操作', 'warning');
+                showNotification('警告', '请允许弹出窗口以继续操作（设置方法见下方说明）', 'warning');
                 return;
             }
             testWindow.close();
@@ -519,7 +601,7 @@
                 return true;
             } else {
                 // 弹出窗口被阻止
-                showNotification('警告', '弹出窗口被阻止，请允许弹出窗口', 'warning');
+                showNotification('警告', '弹出窗口被阻止，请允许弹出窗口（设置方法见下方说明）', 'warning');
                 return false;
             }
         }
